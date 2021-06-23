@@ -1,27 +1,27 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose')
 
 const txSchema = new mongoose.Schema({
   hash: {
     type: String,
     required: true,
-    index: true,
+    index: true
   },
   status: {
     type: String,
     required: true,
-    default: "watched",
+    default: 'watched'
   },
   oldHash: String,
   newHash: String,
   timestamp: {
     type: String,
     default: Date.now(),
-    required: true,
+    required: true
   },
   lastCall: {
     type: Object,
-    default: null,
-  },
-});
+    default: null
+  }
+})
 
-module.exports = mongoose.model("Transaction", txSchema);
+module.exports = mongoose.model('Transaction', txSchema)
