@@ -25,5 +25,9 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm ci
-    - run: npx eslint .
+    - name: Install packages 
+      working-directory: ./api
+      run: npm ci
+    - name: Run ESLint
+      working-directory: ./api
+      run: npx eslint .
