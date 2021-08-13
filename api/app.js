@@ -2,32 +2,13 @@ require('dotenv').config()
 const express = require('express')
 const axios = require('axios')
 const morgan = require('morgan')
-const { MongoClient } = require('mongodb')
+const mongoose = require('mongoose')
 const Transaction = require('./schema.js')
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_URL}/${process.env.DB_NAME}\
-?retryWrites=true&w=majority`
-
-const client = new MongoClient(uri, {
+mongoose.connect(process.env.DB_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
-
-let collection
-
-async function run () {
-  try {
-    console.log('Starting DB connection...')
-    await client.connect()
-    const db = await client.db('bntestdb')
-    collection = db.collection('transactions')
-    console.log('DB ready!')
-  } catch (e) {
-    console.log(e)
-  }
-}
-
-run()
 
 const app = express()
 app.use(express.json())
@@ -49,7 +30,7 @@ app.post('/watch', async function (req, res) {
       blockchain: 'ethereum',
       network: 'goerli'
     })
-    await collection.insertOne(new Transaction({ hash: req.body.hash }))
+    Transaction.create({ hash: req.body.hash })
     res.sendStatus(200)
   } catch (e) {
     console.error('error:', e)
@@ -60,21 +41,20 @@ app.post('/watch', async function (req, res) {
 app.post('/update', async function (req, res) {
   try {
     if (req.body.replaceHash !== undefined) {
-      const newDocument = new Transaction({
+      Transaction.create({
         hash: req.body.replaceHash,
         status: req.body.status,
         lastCall: req.body,
         oldHash: req.body.hash
-      })
-      await collection.insertOne(newDocument) // add the new tx to db
-      await collection.updateOne(
+      }) // add the new tx to db
+      Transaction.updateOne(
         { hash: req.body.hash },
-        { $set: { status: req.body.status, lastCall: req.body, timestamp: Date.now(), newHash: req.body.replaceHash } }
+        { status: req.body.status, lastCall: req.body, timestamp: Date.now(), newHash: req.body.replaceHash }
       ) // update old tx status (speedup/cancels)
     } else {
-      await collection.updateOne(
+      Transaction.updateOne(
         { hash: req.body.hash },
-        { $set: { status: req.body.status, lastCall: req.body, timestamp: Date.now() } }
+        { status: req.body.status, lastCall: req.body, timestamp: Date.now() }
       ) // update all other kind of txs
     }
     res.sendStatus(200)
@@ -89,8 +69,8 @@ app.get('/status', async function (req, res) {
     if (!/^0x([A-Fa-f0-9]{64})$/.test(req.query.hash)) {
       throw new Error('Invalid hash sent')
     }
-    let result = await collection.findOne({ hash: req.query.hash }, { projection: { _id: 0, 'lastCall.apiKey': 0 } })
-    if (result === null) {
+    let result = await Transaction.findOne({ hash: req.query.hash }, { _id: 0, 'lastCall.apiKey': 0, __v: 0 })
+    if (!result) {
       result = {}
     }
     res.send(result).json()
