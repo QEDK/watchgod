@@ -5,11 +5,6 @@ const morgan = require('morgan')
 const mongoose = require('mongoose')
 const Transaction = require('./schema.js')
 
-mongoose.connect(process.env.DB_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-
 const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
@@ -80,6 +75,20 @@ app.get('/status', async function (req, res) {
   }
 })
 
-app.listen(process.env.PORT || 8080, () => {
-  console.log('Server starting on port 8080...')
-})
+const run = async () => {
+  try {
+    await mongoose.connect(process.env.DB_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    })
+    console.log('☑️  DB connected')
+    app.listen(process.env.PORT || 8080, () => {
+      console.log(`🚀 Server starting on port ${process.env.PORT || 8080}...`)
+    })
+  } catch (e) {
+    console.error('❎ error: ' + e)
+    process.exit(1)
+  }
+}
+
+run()
