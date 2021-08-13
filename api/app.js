@@ -25,7 +25,7 @@ app.post('/watch', async function (req, res) {
       blockchain: 'ethereum',
       network: 'goerli'
     })
-    Transaction.create({ hash: req.body.hash })
+    await Transaction.create({ hash: req.body.hash })
     res.sendStatus(200)
   } catch (e) {
     console.error('error:', e)
@@ -36,18 +36,18 @@ app.post('/watch', async function (req, res) {
 app.post('/update', async function (req, res) {
   try {
     if (req.body.replaceHash !== undefined) {
-      Transaction.create({
+      await Transaction.create({
         hash: req.body.replaceHash,
         status: req.body.status,
         lastCall: req.body,
         oldHash: req.body.hash
       }) // add the new tx to db
-      Transaction.updateOne(
+      await Transaction.updateOne(
         { hash: req.body.hash },
         { status: req.body.status, lastCall: req.body, timestamp: Date.now(), newHash: req.body.replaceHash }
       ) // update old tx status (speedup/cancels)
     } else {
-      Transaction.updateOne(
+      await Transaction.updateOne(
         { hash: req.body.hash },
         { status: req.body.status, lastCall: req.body, timestamp: Date.now() }
       ) // update all other kind of txs
