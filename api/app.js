@@ -45,7 +45,11 @@ app.post('/update', async function (req, res) {
       await Transaction.updateOne(
         { hash: req.body.hash },
         { status: req.body.status, lastCall: req.body, timestamp: Date.now(), newHash: req.body.replaceHash }
-      ) // update old tx status (speedup/cancels)
+      ) // update latest tx status (speedup/cancels)
+      await Transaction.update(
+        { newHash: req.body.hash },
+        { status: req.body.status, newHash: req.body.replaceHash }
+      ) // update older txs, if any
     } else {
       await Transaction.updateOne(
         { hash: req.body.hash },
