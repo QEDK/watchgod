@@ -36,7 +36,7 @@ const verify = async (req, res, next) => {
       throw new Error('Invalid API key')
     }
   } catch (e) {
-    console.error('sc❎ error:', e)
+    console.error('❎ error:', e)
     res.sendStatus(403)
   }
 }
@@ -77,7 +77,7 @@ app.post('/update', verify, async function (req, res) {
         { hash: req.body.hash, network: req.body.network },
         { status: req.body.status, timestamp: Date.now(), newHash: req.body.replaceHash }
       ) // update latest tx status (speedup/cancels)
-      await Transaction.update(
+      await Transaction.updateMany(
         { newHash: req.body.hash, network: req.body.network },
         { status: req.body.status, newHash: req.body.replaceHash }
       ) // update older txs, if any
