@@ -11,16 +11,22 @@ const txSchema = new mongoose.Schema({
     required: true,
     default: 'watched'
   },
+  network: {
+    type: String,
+    required: true,
+    enum: ['goerli']
+  },
+  type: {
+    type: String,
+    required: true,
+    default: 'other'
+  },
   oldHash: String,
   newHash: String,
   timestamp: {
     type: String,
     default: Date.now(),
     required: true
-  },
-  lastCall: {
-    type: Object,
-    default: null
   }
 })
 
