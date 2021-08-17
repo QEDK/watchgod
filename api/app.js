@@ -69,9 +69,11 @@ app.post('/update', verify, async function (req, res) {
     if (req.body.replaceHash !== undefined) {
       await Transaction.create({
         hash: req.body.replaceHash,
-        status: req.body.status,
         oldHash: req.body.hash,
-        network: req.body.network
+        network: req.body.network,
+        status: req.body.status,
+        from: req.body.from,
+        to: req.body.to,
       }) // add the new tx to db
       await Transaction.updateOne(
         { hash: req.body.hash, network: req.body.network },
@@ -84,7 +86,7 @@ app.post('/update', verify, async function (req, res) {
     } else {
       await Transaction.updateOne(
         { hash: req.body.hash, network: req.body.network },
-        { status: req.body.status, timestamp: Date.now() }
+        { status: req.body.status, from: req.body.from, to: req.body.to, timestamp: Date.now() }
       ) // update all other kind of txs
     }
     res.sendStatus(200)
@@ -100,7 +102,26 @@ app.get('/status', authenticate, async function (req, res) {
       throw new Error('Invalid hash sent')
     }
     let result = await Transaction.findOne(
-      { hash: req.query.hash, network: req.query.network }, { _id: 0, 'lastCall.apiKey': 0, __v: 0 }
+      { hash: req.query.hash, network: req.query.network }, { _id: 0, __v: 0 }
+    )
+    if (!result) {
+      result = {}
+    }
+    res.send(result).json()
+  } catch (e) {
+    console.error('❎ error:', e)
+    res.sendStatus(400)
+  }
+})
+
+app.get('/history', authenticate, async function (req, res) {
+  try {
+    if (!req.query.from) {
+      throw new Error('From field missing')
+    }
+    let result = await Transaction.findOne(
+      { ...req.query },
+      { _id: 0, __v: 0 },
     )
     if (!result) {
       result = {}

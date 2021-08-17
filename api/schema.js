@@ -21,6 +21,8 @@ const txSchema = new mongoose.Schema({
     required: true,
     default: 'other'
   },
+  from: String,
+  to: String,
   oldHash: String,
   newHash: String,
   timestamp: {
