@@ -73,7 +73,7 @@ app.post('/update', verify, async function (req, res) {
         network: req.body.network,
         status: req.body.status,
         from: req.body.from,
-        to: req.body.to,
+        to: req.body.to
       }) // add the new tx to db
       await Transaction.updateOne(
         { hash: req.body.hash, network: req.body.network },
@@ -119,9 +119,9 @@ app.get('/history', authenticate, async function (req, res) {
     if (!req.query.from) {
       throw new Error('From field missing')
     }
-    let result = await Transaction.findOne(
+    let result = await Transaction.find(
       { ...req.query },
-      { _id: 0, __v: 0 },
+      { _id: 0, __v: 0 }
     )
     if (!result) {
       result = {}
