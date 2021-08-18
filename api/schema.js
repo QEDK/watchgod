@@ -26,7 +26,7 @@ const txSchema = new mongoose.Schema({
   oldHash: String,
   newHash: String,
   timestamp: {
-    type: String,
+    type: Number,
     default: Date.now(),
     required: true
   }
