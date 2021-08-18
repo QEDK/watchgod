@@ -119,10 +119,14 @@ app.get('/history', authenticate, async function (req, res) {
     if (!req.query.from) {
       throw new Error('From field missing')
     }
+    const pagination = { count: Math.max(parseInt(req.query.count || 10), 20), skip: parseInt(req.query.skip || 0) }
+    req.query.count = req.query.skip = undefined
+    console.log(req.query)
     let result = await Transaction.find(
       { ...req.query },
-      { _id: 0, __v: 0 }
-    )
+      { _id: 0, __v: 0 },
+      { limit: pagination.count, skip: pagination.skip }
+    ).sort({ timestamp: 'desc' })
     if (!result) {
       result = {}
     }
