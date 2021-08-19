@@ -3,7 +3,8 @@ const express = require('express')
 const axios = require('axios')
 const morgan = require('morgan')
 const mongoose = require('mongoose')
-const Transaction = require('./schema.js')
+const { Transaction, txSchema } = require('./schema.js')
+const { body, query, validationResult } = require('express-validator')
 
 const app = express()
 app.use(express.json())
@@ -45,29 +46,40 @@ app.get('/', async function (req, res) {
   res.send('Watchgod API')
 })
 
-app.post('/watch', authenticate, async function (req, res) {
-  try {
-    const newTx = new Transaction({
-      hash: req.body.hash,
-      network: req.body.network
-    })
-    let errors = newTx.validateSync()
-    if (errors) {
-      throw new Error(errors)
+app.post('/watch', authenticate,
+  body('hash').custom((value) => {
+    if (!/^0x([A-Fa-f0-9]{64})$/.test(value)) {
+      throw new Error('Invalid hash sent')
     }
-    await axios.post('https://api.blocknative.com/transaction', {
-      apiKey: process.env.API_KEY,
-      hash: req.body.hash,
-      blockchain: 'ethereum',
-      network: req.body.network
-    })
-    await newTx.save()
-    res.sendStatus(200)
-  } catch (e) {
-    console.error('❎ error:', e)
-    res.sendStatus(400)
-  }
-})
+    return true
+  }),
+  body('network').custom((value) => {
+    if (!txSchema.obj.network.enum.includes(value)) {
+      throw new Error('Invalid network')
+    }
+    return true
+  }), async function (req, res) {
+    try {
+      const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() })
+      }
+      const serviceRes = await axios.post('https://api.blocknative.com/transaction', {
+        apiKey: process.env.API_KEY,
+        hash: req.body.hash,
+        blockchain: 'ethereum',
+        network: req.body.network
+      })
+      if (serviceRes.status !== 200) {
+        throw new Error(serviceRes.data)
+      }
+      await Transaction.create({ hash: req.body.hash, network: req.body.network })
+      res.sendStatus(200)
+    } catch (e) {
+      console.error('❎ error:', e)
+      res.sendStatus(400)
+    }
+  })
 
 app.post('/update', verify, async function (req, res) {
   try {
@@ -101,45 +113,65 @@ app.post('/update', verify, async function (req, res) {
   }
 })
 
-app.get('/status', authenticate, async function (req, res) {
-  try {
-    if (!/^0x([A-Fa-f0-9]{64})$/.test(req.query.hash)) {
+app.get('/status', authenticate,
+  body('hash').custom((value) => {
+    if (!/^0x([A-Fa-f0-9]{64})$/.test(value)) {
       throw new Error('Invalid hash sent')
     }
-    let result = await Transaction.findOne(
-      { hash: req.query.hash, network: req.query.network }, { _id: 0, __v: 0 }
-    )
-    if (!result) {
-      result = {}
+    return true
+  }),
+  body('network').custom((value) => {
+    if (!txSchema.obj.network.enum.includes(value)) {
+      throw new Error('Invalid network')
     }
-    res.send(result).json()
-  } catch (e) {
-    console.error('❎ error:', e)
-    res.sendStatus(400)
-  }
-})
+    return true
+  }), async function (req, res) {
+    try {
+      const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() })
+      }
+      let result = await Transaction.findOne(
+        { hash: req.query.hash, network: req.query.network }, { _id: 0, __v: 0 }
+      ).lean()
+      if (!result) {
+        result = {}
+      }
+      res.send(result).json()
+    } catch (e) {
+      console.error('❎ error:', e)
+      res.sendStatus(400)
+    }
+  })
 
-app.get('/history', authenticate, async function (req, res) {
-  try {
-    if (!req.query.from) {
+app.get('/history', authenticate,
+  query('from').custom((value) => {
+    if (!value) {
       throw new Error('From field missing')
     }
-    const pagination = { count: Math.max(parseInt(req.query.count || 10), 20), skip: parseInt(req.query.skip || 0) }
-    req.query.count = req.query.skip = undefined
-    let result = await Transaction.find(
-      { ...req.query },
-      { _id: 0, __v: 0 },
-      { limit: pagination.count, skip: pagination.skip }
-    ).sort({ timestamp: 'desc' })
-    if (!result) {
-      result = {}
+    return true
+  }), async function (req, res) {
+    try {
+      const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() })
+      }
+      const pagination = { count: Math.max(parseInt(req.query.count ?? 10), 20), skip: parseInt(req.query.skip ?? 0) }
+      req.query.count = req.query.skip = undefined
+      let result = await Transaction.find(
+        { ...req.query },
+        { _id: 0, __v: 0 },
+        { limit: pagination.count, skip: pagination.skip }
+      ).sort({ timestamp: 'desc' }).lean()
+      if (!result) {
+        result = {}
+      }
+      res.send(result).json()
+    } catch (e) {
+      console.error('❎ error:', e)
+      res.sendStatus(400)
     }
-    res.send(result).json()
-  } catch (e) {
-    console.error('❎ error:', e)
-    res.sendStatus(400)
-  }
-})
+  })
 
 const run = async () => {
   try {

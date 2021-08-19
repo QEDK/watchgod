@@ -5,10 +5,7 @@ const txSchema = new mongoose.Schema({
   hash: {
     type: String,
     required: true,
-    index: true,
-    validate: (value) => {
-      return /^0x([A-Fa-f0-9]{64})$/.test(value)
-    }
+    index: true
   },
   status: {
     type: String,
@@ -18,7 +15,7 @@ const txSchema = new mongoose.Schema({
   network: {
     type: String,
     required: true,
-    enum: (process.env.APP_MODE == 'testnet') ? ['goerli'] : ['main', 'matic-main']
+    enum: (process.env.APP_MODE === 'testnet') ? ['goerli'] : ['main', 'matic-main']
   },
   type: {
     type: String,
@@ -36,4 +33,6 @@ const txSchema = new mongoose.Schema({
   }
 })
 
-module.exports = mongoose.model('Transaction', txSchema)
+const Transaction = mongoose.model('Transaction', txSchema)
+
+module.exports = { Transaction, txSchema }
