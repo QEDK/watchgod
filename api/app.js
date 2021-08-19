@@ -47,16 +47,21 @@ app.get('/', async function (req, res) {
 
 app.post('/watch', authenticate, async function (req, res) {
   try {
-    if (!/^0x([A-Fa-f0-9]{64})$/.test(req.body.hash)) {
-      throw new Error('Invalid hash sent')
+    const newTx = new Transaction({
+      hash: req.body.hash,
+      network: req.body.network
+    })
+    let errors = newTx.validateSync()
+    if (errors) {
+      throw new Error(errors)
     }
     await axios.post('https://api.blocknative.com/transaction', {
       apiKey: process.env.API_KEY,
       hash: req.body.hash,
       blockchain: 'ethereum',
-      network: 'goerli'
+      network: req.body.network
     })
-    await Transaction.create({ hash: req.body.hash, network: req.body.network })
+    await newTx.save()
     res.sendStatus(200)
   } catch (e) {
     console.error('❎ error:', e)
@@ -144,7 +149,7 @@ const run = async () => {
     })
     console.log('☑️  DB connected')
     app.listen(process.env.PORT || 8080, () => {
-      console.log(`🚀 Server starting on port ${process.env.PORT || 8080}...`)
+      console.log(`🚀 Server starting on port ${process.env.PORT || 8080} in ${process.env.APP_MODE || 'mainnet'} mode...`)
     })
   } catch (e) {
     console.error('❎ error:', e)
