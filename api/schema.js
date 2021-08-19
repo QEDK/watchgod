@@ -1,10 +1,14 @@
+require('dotenv').config()
 const mongoose = require('mongoose')
 
 const txSchema = new mongoose.Schema({
   hash: {
     type: String,
     required: true,
-    index: true
+    index: true,
+    validate: (value) => {
+      return /^0x([A-Fa-f0-9]{64})$/.test(value)
+    }
   },
   status: {
     type: String,
@@ -14,7 +18,7 @@ const txSchema = new mongoose.Schema({
   network: {
     type: String,
     required: true,
-    enum: ['goerli']
+    enum: (process.env.APP_MODE == 'testnet') ? ['goerli'] : ['main', 'matic-main']
   },
   type: {
     type: String,
