@@ -9,7 +9,7 @@ const { body, query, validationResult } = require('express-validator')
 const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
-app.use(morgan('dev'))
+app.use(morgan('tiny'))
 
 if (!process.env.API_KEY || !process.env.AUTHORIZATION_TOKEN) {
   console.error('❎ error: Configuration missing, see .env.example')
@@ -53,6 +53,12 @@ app.post('/watch', authenticate,
     }
     return true
   }),
+  body('prevBurnHash').custom((value) => {
+    if (value && !/^0x([A-Fa-f0-9]{64})$/.test(value)) {
+      throw new Error('Invalid prevBurnHash sent')
+    }
+    return true
+  }),
   body('network').custom((value) => {
     if (!txSchema.obj.network.enum.includes(value)) {
       throw new Error('Invalid network')
@@ -73,7 +79,11 @@ app.post('/watch', authenticate,
       if (serviceRes.status !== 200) {
         throw new Error(serviceRes.data)
       }
-      await Transaction.create({ hash: req.body.hash, network: req.body.network })
+      await Transaction.create({
+        hash: req.body.hash,
+        network: req.body.network,
+        prevBurnHash: req.body.prevBurnHash
+      })
       res.sendStatus(200)
     } catch (e) {
       console.error('❎ error:', e)
@@ -84,18 +94,20 @@ app.post('/watch', authenticate,
 app.post('/update', verify, async function (req, res) {
   try {
     if (req.body.replaceHash !== undefined) {
+      const prevTx = await Transaction.updateOne(
+        { hash: req.body.hash, network: req.body.network },
+        { status: req.body.status, timestamp: Date.now(), newHash: req.body.replaceHash }
+      ) // update latest tx status (speedup/cancels)
       await Transaction.create({
         hash: req.body.replaceHash,
         oldHash: req.body.hash,
         network: req.body.network,
         status: req.body.status,
+        prevBurnHash: prevTx.prevBurnHash,
         from: req.body.from,
-        to: req.body.to
+        to: req.body.to,
+        data: req.body.data
       }) // add the new tx to db
-      await Transaction.updateOne(
-        { hash: req.body.hash, network: req.body.network },
-        { status: req.body.status, timestamp: Date.now(), newHash: req.body.replaceHash }
-      ) // update latest tx status (speedup/cancels)
       await Transaction.updateMany(
         { newHash: req.body.hash, network: req.body.network },
         { status: req.body.status, newHash: req.body.replaceHash }

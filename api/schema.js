@@ -17,13 +17,15 @@ const txSchema = new mongoose.Schema({
     required: true,
     enum: (process.env.APP_MODE === 'testnet') ? ['goerli'] : ['main', 'matic-main']
   },
-  type: {
+  txType: {
     type: String,
     required: true,
     default: 'other'
   },
+  prevBurnHash: String,
   from: String,
   to: String,
+  data: String,
   oldHash: String,
   newHash: String,
   timestamp: {
