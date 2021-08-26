@@ -106,7 +106,7 @@ app.post('/update', verify, async function (req, res) {
         prevBurnHash: prevTx.prevBurnHash,
         from: req.body.from,
         to: req.body.to,
-        data: req.body.data
+        data: req.body.input
       }) // add the new tx to db
       await Transaction.updateMany(
         { newHash: req.body.hash, network: req.body.network },
@@ -115,7 +115,7 @@ app.post('/update', verify, async function (req, res) {
     } else {
       await Transaction.updateOne(
         { hash: req.body.hash, network: req.body.network },
-        { status: req.body.status, from: req.body.from, to: req.body.to, data: req.body.data, timestamp: Date.now() }
+        { status: req.body.status, from: req.body.from, to: req.body.to, data: req.body.input, timestamp: Date.now() }
       ) // update all other kind of txs
     }
     res.sendStatus(200)
