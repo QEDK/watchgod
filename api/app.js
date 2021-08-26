@@ -115,7 +115,7 @@ app.post('/update', verify, async function (req, res) {
     } else {
       await Transaction.updateOne(
         { hash: req.body.hash, network: req.body.network },
-        { status: req.body.status, from: req.body.from, to: req.body.to, timestamp: Date.now() }
+        { status: req.body.status, from: req.body.from, to: req.body.to, data: req.body.data, timestamp: Date.now() }
       ) // update all other kind of txs
     }
     res.sendStatus(200)
