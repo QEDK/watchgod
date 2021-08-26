@@ -126,13 +126,13 @@ app.post('/update', verify, async function (req, res) {
 })
 
 app.get('/status', authenticate,
-  body('hash').custom((value) => {
+  query('hash').custom((value) => {
     if (!/^0x([A-Fa-f0-9]{64})$/.test(value)) {
       throw new Error('Invalid hash sent')
     }
     return true
   }),
-  body('network').custom((value) => {
+  query('network').custom((value) => {
     if (!txSchema.obj.network.enum.includes(value)) {
       throw new Error('Invalid network')
     }
