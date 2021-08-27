@@ -33,6 +33,19 @@ if (!process.env.API_KEY || !process.env.AUTHORIZATION_TOKEN) {
   process.exit(1)
 }
 
+/**
+* @openapi
+* components:
+*   securitySchemes:
+*     bearerAuth:
+*       type: http
+*       scheme: bearer
+*       bearerFormat: 'Bearer xxxx'
+*     responses:
+*       UnauthorizedError:
+*         description: Access token is missing or invalid
+*/
+
 const authenticate = async (req, res, next) => {
   try {
     if (req.headers.authorization === `Bearer ${process.env.AUTHORIZATION_TOKEN}`) {
@@ -42,7 +55,7 @@ const authenticate = async (req, res, next) => {
     }
   } catch (e) {
     console.error('❎ error:', e)
-    res.sendStatus(403)
+    res.sendStatus(401)
   }
 }
 
@@ -55,7 +68,7 @@ const verify = async (req, res, next) => {
     }
   } catch (e) {
     console.error('❎ error:', e)
-    res.sendStatus(403)
+    res.sendStatus(401)
   }
 }
 
@@ -70,6 +83,8 @@ app.get('/', async function (req, res) {
  *    tags:
  *     - External
  *    summary: Submit a transaction hash to track
+ *    security:
+ *      - bearerAuth: []
  *    parameters:
  *      - in: header
  *        name: Authorization
@@ -93,10 +108,10 @@ app.get('/', async function (req, res) {
  *        required: true
  *        description: Network to watch the transaction on
  *    responses:
- *       '200':
+ *      '200':
  *        description: A successful response
- *       '400':
- *        description: Bad Request
+ *      '401':
+ *        $ref: '#/components/responses/UnauthorizedError'
  */
 app.post('/watch', authenticate,
   body('hash').custom((value) => {
@@ -205,22 +220,17 @@ app.post('/update', verify, async function (req, res) {
  *    tags:
  *     - External
  *    summary: Get the status of a transaction on a network
+ *    security:
+ *      - bearerAuth: []
  *    parameters:
- *      - in: header
- *        name: Authorization
- *        schema:
- *          type: string
- *          example: "Bearer t4vU-yFMVeaP0whDs2hbmV_S9HkymZ5c5GYw"
- *        required: true
- *        description: Bearer token to authenticate requests
- *      - in: body
+ *      - in: query
  *        name: hash
  *        schema:
  *          type: string
  *          example: "0x00cae379d2098fb1a1ace0bd96939829304cc188d5fa9adcc9c6ae265c0ee82a"
  *        required: true
  *        description: Hash to get the status of the transaction
- *      - in: body
+ *      - in: query
  *        name: network
  *        schema:
  *          type: string
@@ -268,6 +278,39 @@ app.get('/status', authenticate,
     }
   })
 
+/**
+ * @openapi
+ * /history:
+ *  get:
+ *    tags:
+ *     - External
+ *    summary: Fetch the entire history of watched transactions from an address
+ *    security:
+ *      - bearerAuth: []
+ *    parameters:
+ *      - in: query
+ *        name: from
+ *        schema:
+ *          type: string
+ *          example: "0x1987013F26d9fa9a61856dE905668fcF6CAfE0A8"
+ *        required: true
+ *        description: The address to query the transactions from
+ *      - in: query
+ *        schema:
+ *          $ref: '#/components/schemas/Transaction'
+ *        description: Parameters to filter, use this without the "from" field
+ *    responses:
+ *       '200':
+ *        description: A successful response
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: array
+ *              items:
+ *                $ref: '#/components/schemas/Transaction'
+ *       '400':
+ *        description: Bad Request
+ */
 app.get('/history', authenticate,
   query('from').custom((value) => {
     if (!value) {
