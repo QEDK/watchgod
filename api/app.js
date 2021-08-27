@@ -3,8 +3,8 @@ const express = require('express')
 const axios = require('axios')
 const morgan = require('morgan')
 const mongoose = require('mongoose')
-const swaggerUi = require('swagger-ui-express');
-const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express')
+const swaggerJsdoc = require('swagger-jsdoc')
 const { Transaction, txSchema } = require('./schema.js')
 const { body, query, validationResult } = require('express-validator')
 
@@ -18,15 +18,15 @@ const options = {
     openapi: '3.0.3',
     info: {
       title: 'Watchgod Swagger UI',
-      version: '1.0.0',
-    },
+      version: '1.0.0'
+    }
   },
-  apis: ['./app.js', './schema.js'], // files containing annotations as above
-};
+  apis: ['./app.js', './schema.js'] // files containing annotations as above
+}
 
-const openapiSpecification = swaggerJsdoc(options);
+const openapiSpecification = swaggerJsdoc(options)
 
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification))
 
 if (!process.env.API_KEY || !process.env.AUTHORIZATION_TOKEN) {
   console.error('❎ error: Configuration missing, see .env.example')
@@ -84,38 +84,32 @@ app.get('/', async function (req, res) {
  *    summary: Submit a transaction hash to track
  *    security:
  *      - bearerAuth: []
- *    parameters:
- *      - in: body
- *        name: hash
- *        schema:
- *          type: string
- *          example: "0x00cae379d2098fb1a1ace0bd96939829304cc188d5fa9adcc9c6ae265c0ee82a"
- *        required: true
- *        description: Hash to watch
- *      - in: body
- *        name: network
- *        schema:
- *          type: string
- *          example: "main"
- *        required: true
- *        description: Network to watch the transaction on
- *      - in: body
- *        name: txType
- *        schema:
- *          type: string
- *          example: "other"
- *        description: Store the kind of transaction, defaults to "other"
- *      - in: body
- *        name: prevBurnHash
- *        schema:
- *          type: string
- *          example: "0x00cae379d2098fb1a1ace0bd96939829304cc188d5fa9adcc9c6ae265c0ee82a"
- *        description: Store a linked burn hash (if any)
+ *    requestBody:
+ *      description: Transaction and related parameters to track over time
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              hash:
+ *                type: string
+ *                example: "0x00cae379d2098fb1a1ace0bd96939829304cc188d5fa9adcc9c6ae265c0ee82a"
+ *                required: true
+ *              network:
+ *                type: string
+ *                example: "main"
+ *                required: true
+ *              txType:
+ *                type: string
+ *                example: "other"
+ *              prevBurnHash:
+ *                type: string
+ *                example: "0x00cae379d2098fb1a1ace0bd96939829304cc188d5fa9adcc9c6ae265c0ee82a"
  *    responses:
  *      '200':
  *        description: A successful response
  *      '400':
- *        description: Bad Request
+ *        description: Bad request
  *      '401':
  *        $ref: '#/components/responses/UnauthorizedError'
  */
@@ -156,7 +150,7 @@ app.post('/watch', authenticate,
         hash: req.body.hash,
         network: req.body.network,
         prevBurnHash: req.body.prevBurnHash,
-        txType: req.body.txType,
+        txType: req.body.txType
       })
       res.sendStatus(200)
     } catch (e) {
@@ -184,7 +178,7 @@ app.post('/watch', authenticate,
  *       '200':
  *        description: A successful response
  *       '400':
- *        description: Bad Request
+ *        description: Bad request
  *       '401':
  *        $ref: '#/components/responses/UnauthorizedError'
  */
@@ -254,7 +248,7 @@ app.post('/update', verify, async function (req, res) {
  *            schema:
  *              $ref: '#/components/schemas/Transaction'
  *       '400':
- *        description: Bad Request
+ *        description: Bad request
  *       '401':
  *        $ref: '#/components/responses/UnauthorizedError'
  */
@@ -328,7 +322,7 @@ app.get('/status', authenticate,
  *              items:
  *                $ref: '#/components/schemas/Transaction'
  *       '400':
- *        description: Bad Request
+ *        description: Bad request
  *       '401':
  *        $ref: '#/components/responses/UnauthorizedError'
  */
