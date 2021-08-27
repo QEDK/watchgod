@@ -40,10 +40,9 @@ if (!process.env.API_KEY || !process.env.AUTHORIZATION_TOKEN) {
 *     bearerAuth:
 *       type: http
 *       scheme: bearer
-*       bearerFormat: 'Bearer xxxx'
-*     responses:
-*       UnauthorizedError:
-*         description: Access token is missing or invalid
+*   responses:
+*     UnauthorizedError:
+*       description: Access token is missing or invalid
 */
 
 const authenticate = async (req, res, next) => {
@@ -86,13 +85,6 @@ app.get('/', async function (req, res) {
  *    security:
  *      - bearerAuth: []
  *    parameters:
- *      - in: header
- *        name: Authorization
- *        schema:
- *          type: string
- *          example: "Bearer t4vU-yFMVeaP0whDs2hbmV_S9HkymZ5c5GYw"
- *        required: true
- *        description: Bearer token to authenticate requests
  *      - in: body
  *        name: hash
  *        schema:
@@ -178,6 +170,8 @@ app.post('/watch', authenticate,
  *        description: A successful response
  *       '400':
  *        description: Bad Request
+ *       '401':
+ *        $ref: '#/components/responses/UnauthorizedError'
  */
 app.post('/update', verify, async function (req, res) {
   try {
@@ -246,6 +240,8 @@ app.post('/update', verify, async function (req, res) {
  *              $ref: '#/components/schemas/Transaction'
  *       '400':
  *        description: Bad Request
+ *       '401':
+ *        $ref: '#/components/responses/UnauthorizedError'
  */
 app.get('/status', authenticate,
   query('hash').custom((value) => {
@@ -284,7 +280,7 @@ app.get('/status', authenticate,
  *  get:
  *    tags:
  *     - External
- *    summary: Fetch the entire history of watched transactions from an address
+ *    summary: Fetch the entire history of watched transactions from an address (in reverse chronological order)
  *    security:
  *      - bearerAuth: []
  *    parameters:
@@ -296,9 +292,17 @@ app.get('/status', authenticate,
  *        required: true
  *        description: The address to query the transactions from
  *      - in: query
+ *        name: count
  *        schema:
- *          $ref: '#/components/schemas/Transaction'
- *        description: Parameters to filter, use this without the "from" field
+ *          type: number
+ *          example: 10
+ *        description: Number of transactions to fetch, defaults to 10, maximum is 20
+ *      - in: query
+ *        name: skip
+ *        schema:
+ *          type: number
+ *          example: 0
+ *        description: Number of transactions to skip from the latest transaction
  *    responses:
  *       '200':
  *        description: A successful response
@@ -310,6 +314,8 @@ app.get('/status', authenticate,
  *                $ref: '#/components/schemas/Transaction'
  *       '400':
  *        description: Bad Request
+ *       '401':
+ *        $ref: '#/components/responses/UnauthorizedError'
  */
 app.get('/history', authenticate,
   query('from').custom((value) => {
