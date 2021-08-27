@@ -99,9 +99,23 @@ app.get('/', async function (req, res) {
  *          example: "main"
  *        required: true
  *        description: Network to watch the transaction on
+ *      - in: body
+ *        name: txType
+ *        schema:
+ *          type: string
+ *          example: "other"
+ *        description: Store the kind of transaction, defaults to "other"
+ *      - in: body
+ *        name: prevBurnHash
+ *        schema:
+ *          type: string
+ *          example: "0x00cae379d2098fb1a1ace0bd96939829304cc188d5fa9adcc9c6ae265c0ee82a"
+ *        description: Store a linked burn hash (if any)
  *    responses:
  *      '200':
  *        description: A successful response
+ *      '400':
+ *        description: Bad Request
  *      '401':
  *        $ref: '#/components/responses/UnauthorizedError'
  */
@@ -141,7 +155,8 @@ app.post('/watch', authenticate,
       await Transaction.create({
         hash: req.body.hash,
         network: req.body.network,
-        prevBurnHash: req.body.prevBurnHash
+        prevBurnHash: req.body.prevBurnHash,
+        txType: req.body.txType,
       })
       res.sendStatus(200)
     } catch (e) {
