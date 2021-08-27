@@ -3,6 +3,8 @@ const express = require('express')
 const axios = require('axios')
 const morgan = require('morgan')
 const mongoose = require('mongoose')
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
 const { Transaction, txSchema } = require('./schema.js')
 const { body, query, validationResult } = require('express-validator')
 
@@ -10,6 +12,21 @@ const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(morgan('tiny'))
+
+const options = {
+  definition: {
+    openapi: '3.0.3',
+    info: {
+      title: 'Watchgod Swagger UI',
+      version: '1.0.0',
+    },
+  },
+  apis: ['./app.js', './schema.js'], // files containing annotations as above
+};
+
+const openapiSpecification = swaggerJsdoc(options);
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
 
 if (!process.env.API_KEY || !process.env.AUTHORIZATION_TOKEN) {
   console.error('❎ error: Configuration missing, see .env.example')
@@ -46,6 +63,41 @@ app.get('/', async function (req, res) {
   res.send('Watchgod API')
 })
 
+/**
+ * @openapi
+ * /watch:
+ *  post:
+ *    tags:
+ *     - External
+ *    summary: Submit a transaction hash to track
+ *    parameters:
+ *      - in: header
+ *        name: Authorization
+ *        schema:
+ *          type: string
+ *          example: "Bearer t4vU-yFMVeaP0whDs2hbmV_S9HkymZ5c5GYw"
+ *        required: true
+ *        description: Bearer token to authenticate requests
+ *      - in: body
+ *        name: hash
+ *        schema:
+ *          type: string
+ *          example: "0x00cae379d2098fb1a1ace0bd96939829304cc188d5fa9adcc9c6ae265c0ee82a"
+ *        required: true
+ *        description: Hash to watch
+ *      - in: body
+ *        name: network
+ *        schema:
+ *          type: string
+ *          example: "main"
+ *        required: true
+ *        description: Network to watch the transaction on
+ *    responses:
+ *       '200':
+ *        description: A successful response
+ *       '400':
+ *        description: Bad Request
+ */
 app.post('/watch', authenticate,
   body('hash').custom((value) => {
     if (!/^0x([A-Fa-f0-9]{64})$/.test(value)) {
@@ -91,6 +143,27 @@ app.post('/watch', authenticate,
     }
   })
 
+/**
+ * @openapi
+ * /update:
+ *  post:
+ *    tags:
+ *     - Internal
+ *    summary: Internal endpoint for use by Blocknative's webhook API
+ *    parameters:
+ *      - in: body
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *          example: "t4vU-yFMVeaP0whDs2hbmV_S9HkymZ5c5GYw"
+ *        required: true
+ *        description: API key to verify requests
+ *    responses:
+ *       '200':
+ *        description: A successful response
+ *       '400':
+ *        description: Bad Request
+ */
 app.post('/update', verify, async function (req, res) {
   try {
     if (req.body.replaceHash !== undefined) {
@@ -125,6 +198,45 @@ app.post('/update', verify, async function (req, res) {
   }
 })
 
+/**
+ * @openapi
+ * /status:
+ *  get:
+ *    tags:
+ *     - External
+ *    summary: Get the status of a transaction on a network
+ *    parameters:
+ *      - in: header
+ *        name: Authorization
+ *        schema:
+ *          type: string
+ *          example: "Bearer t4vU-yFMVeaP0whDs2hbmV_S9HkymZ5c5GYw"
+ *        required: true
+ *        description: Bearer token to authenticate requests
+ *      - in: body
+ *        name: hash
+ *        schema:
+ *          type: string
+ *          example: "0x00cae379d2098fb1a1ace0bd96939829304cc188d5fa9adcc9c6ae265c0ee82a"
+ *        required: true
+ *        description: Hash to get the status of the transaction
+ *      - in: body
+ *        name: network
+ *        schema:
+ *          type: string
+ *          example: "main"
+ *        required: true
+ *        description: Network on which to fetch the status of the transaction
+ *    responses:
+ *       '200':
+ *        description: A successful response
+ *        content:
+ *          application/json:
+ *            schema:
+ *              $ref: '#/components/schemas/Transaction'
+ *       '400':
+ *        description: Bad Request
+ */
 app.get('/status', authenticate,
   query('hash').custom((value) => {
     if (!/^0x([A-Fa-f0-9]{64})$/.test(value)) {
