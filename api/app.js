@@ -338,7 +338,7 @@ app.get('/history', authenticate,
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() })
       }
-      const pagination = { count: Math.max(parseInt(req.query.count ?? 10), 20), skip: parseInt(req.query.skip ?? 0) }
+      const pagination = { count: Math.min(parseInt(req.query.count ?? 10), 20), skip: parseInt(req.query.skip ?? 0) }
       req.query.count = req.query.skip = undefined
       let result = await Transaction.find(
         { ...req.query },
