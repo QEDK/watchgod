@@ -1,3 +1,7 @@
+const axios = require('axios')
+const { validationResult } = require('express-validator')
+const { Transaction } = require('../models/transaction.js')
+
 const watchController = async (req, res) => {
   try {
     const errors = validationResult(req)

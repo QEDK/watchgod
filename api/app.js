@@ -1,11 +1,9 @@
 require('dotenv').config()
 const express = require('express')
-const axios = require('axios')
 const morgan = require('morgan')
 const mongoose = require('mongoose')
 const swaggerUi = require('swagger-ui-express')
 const swaggerJsdoc = require('swagger-jsdoc')
-const { Transaction, txSchema } = require('./schema.js')
 
 const app = express()
 app.use(express.json())

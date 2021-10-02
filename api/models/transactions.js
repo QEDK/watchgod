@@ -59,15 +59,15 @@ const txSchema = new mongoose.Schema({
     enum: (process.env.APP_MODE === 'testnet') ? ['goerli'] : ['main', 'matic-main']
   },
   txType: {
-    enum: ['burn', 'exit', 'deposit', 'approve', 'confirmWithdraw', 'other']
     type: String,
     required: true,
-    default: 'other'
+    default: 'other',
+    enum: ['burn', 'exit', 'deposit', 'approve', 'confirmWithdraw', 'other']
   },
   prevBurnHash: String,
   contractAddress: String,
   isPos: Boolean,
-  rootToken: String
+  rootToken: String,
   from: String,
   to: String,
   data: String,

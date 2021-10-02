@@ -1,8 +1,12 @@
+const express = require('express')
+const { body, query } = require('express-validator')
 const { authenticate, verify } = require('../helpers/index.js')
-const { watchController, updateController } = require('../controllers/index.js')
-const { body, query, validationResult } = require('express-validator')
+const { watchController, updateController, statusController, historyController } = require('../controllers/index.js')
+const { txSchema } = require('../models/transaction.js')
 
-app.get('/', async function (req, res) {
+const router = express.Router()
+
+router.get('/', async function (req, res) {
   res.send('Watchgod API')
 })
 
@@ -44,7 +48,7 @@ app.get('/', async function (req, res) {
  *      '401':
  *        $ref: '#/components/responses/UnauthorizedError'
  */
-app.post('/watch', authenticate,
+router.post('/watch', authenticate,
   body('hash').custom((value) => {
     if (!/^0x([A-Fa-f0-9]{64})$/.test(value)) {
       throw new Error('Invalid hash sent')
@@ -87,7 +91,7 @@ app.post('/watch', authenticate,
  *       '401':
  *        $ref: '#/components/responses/UnauthorizedError'
  */
-app.post('/update', verify, updateController)
+router.post('/update', verify, updateController)
 
 /**
  * @openapi
@@ -125,7 +129,7 @@ app.post('/update', verify, updateController)
  *       '401':
  *        $ref: '#/components/responses/UnauthorizedError'
  */
-app.get('/status', authenticate,
+router.get('/status', authenticate,
   query('hash').custom((value) => {
     if (!/^0x([A-Fa-f0-9]{64})$/.test(value)) {
       throw new Error('Invalid hash sent')
@@ -182,7 +186,7 @@ app.get('/status', authenticate,
  *       '401':
  *        $ref: '#/components/responses/UnauthorizedError'
  */
-app.get('/history', authenticate,
+router.get('/history', authenticate,
   query('from').custom((value) => {
     if (!value) {
       throw new Error('From field missing')
