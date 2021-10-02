@@ -18,18 +18,28 @@ const mongoose = require('mongoose')
 *           type: string
 *         prevBurnHash:
 *           type: string
+*         contractAddress:
+*           type: string
+*         isPos:
+*           type: boolean
+*         rootToken:
+*           type: string
 *         from:
 *           type: string
 *         to:
 *           type: string
 *         data:
 *           type: string
+*         amount:
+*           type: string
 *         oldHash:
 *           type: string
 *         newHash:
 *           type: string
+*         blockNumber:
+*           type: number
 *         timestamp:
-*           type: string
+*           type: number
 */
 
 const txSchema = new mongoose.Schema({
