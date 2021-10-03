@@ -1,5 +1,6 @@
 require('dotenv').config()
 const express = require('express')
+const helmet = require('helmet')
 const morgan = require('morgan')
 const mongoose = require('mongoose')
 const swaggerUi = require('swagger-ui-express')
@@ -9,6 +10,7 @@ const routes = require('./routes/index.js')
 const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
+app.use(helmet())
 app.use(morgan('tiny'))
 
 const options = {
