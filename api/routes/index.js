@@ -40,6 +40,15 @@ router.get('/', async function (req, res) {
  *              prevBurnHash:
  *                type: string
  *                example: "0x00cae379d2098fb1a1ace0bd96939829304cc188d5fa9adcc9c6ae265c0ee82a"
+ *              isPos:
+ *                type: boolean
+ *                example: true
+ *              rootToken:
+ *                type: string
+ *                example: "0x00cae379d2098fb1a1ace0bd96939829304cc188d5fa9adcc9c6ae265c0ee82a"
+ *              amount:
+ *                type: string
+ *                example: "1000000000000000000"
  *    responses:
  *      '200':
  *        description: A successful response
@@ -193,3 +202,5 @@ router.get('/history', authenticate,
     }
     return true
   }), historyController)
+
+module.exports = router

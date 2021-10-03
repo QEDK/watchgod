@@ -4,6 +4,7 @@ const morgan = require('morgan')
 const mongoose = require('mongoose')
 const swaggerUi = require('swagger-ui-express')
 const swaggerJsdoc = require('swagger-jsdoc')
+const routes = require('./routes/index.js')
 
 const app = express()
 app.use(express.json())
@@ -24,6 +25,7 @@ const options = {
 const openapiSpecification = swaggerJsdoc(options)
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification))
+app.use('/', routes)
 
 if (!process.env.API_KEY || !process.env.AUTHORIZATION_TOKEN) {
   console.error('❎ error: Configuration missing, see .env.example')
