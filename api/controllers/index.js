@@ -45,7 +45,8 @@ const updateController = async (req, res) => {
         prevBurnHash: prevTx.prevBurnHash,
         from: req.body.from,
         to: req.body.to,
-        data: req.body.input
+        data: req.body.input,
+        blockNumber: req.body.blockNumber
       }) // add the new tx to db
       await Transaction.updateMany(
         { newHash: req.body.hash, network: req.body.network },
@@ -54,7 +55,15 @@ const updateController = async (req, res) => {
     } else {
       await Transaction.updateOne(
         { hash: req.body.hash, network: req.body.network },
-        { status: req.body.status, from: req.body.from, to: req.body.to, data: req.body.input, timestamp: Date.now() }
+        {
+          status: req.body.status,
+          from: req.body.from,
+          to: req.body.to,
+          data:
+          req.body.input,
+          blockNumber: req.body.blockNumber,
+          timestamp: Date.now()
+        }
       ) // update all other kind of txs
     }
     res.sendStatus(200)
