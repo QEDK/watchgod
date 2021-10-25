@@ -17,11 +17,16 @@ const watchController = async (req, res) => {
     if (serviceRes.status !== 200) {
       throw new Error(serviceRes.data)
     }
-    await Transaction.create({
+    await Transaction.updateOne({
+      hash: req.body.hash,
+      network: req.body.network
+    }, {
       hash: req.body.hash,
       network: req.body.network,
       prevBurnHash: req.body.prevBurnHash,
       txType: req.body.txType
+    }, {
+      upsert: true
     })
     res.sendStatus(200)
   } catch (e) {
