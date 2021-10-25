@@ -24,7 +24,8 @@ const watchController = async (req, res) => {
       hash: req.body.hash,
       network: req.body.network,
       prevBurnHash: req.body.prevBurnHash,
-      txType: req.body.txType
+      txType: req.body.txType,
+      status: 'watched'
     }, {
       upsert: true
     })
