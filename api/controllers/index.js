@@ -18,12 +18,12 @@ const watchController = async (req, res) => {
       throw new Error(serviceRes.data)
     }
     await Transaction.updateOne({
-      hash: req.body.hash,
+      hash: req.body.hash?.toLowerCase(),
       network: req.body.network
     }, {
-      hash: req.body.hash,
+      hash: req.body.hash?.toLowerCase(),
       network: req.body.network,
-      prevBurnHash: req.body.prevBurnHash,
+      prevBurnHash: req.body.prevBurnHash?.toLowerCase(),
       txType: req.body.txType,
       amount: req.body.amount,
       rootToken: req.body.rootToken,
@@ -46,13 +46,13 @@ const updateController = async (req, res) => {
         { status: req.body.status, timestamp: Date.now(), newHash: req.body.replaceHash }
       ) // update latest tx status (speedup/cancels)
       await Transaction.create({
-        hash: req.body.replaceHash,
-        oldHash: req.body.hash,
+        hash: req.body.replaceHash?.toLowerCase(),
+        oldHash: req.body.hash?.toLowerCase(),
         network: req.body.network,
         status: req.body.status,
-        prevBurnHash: prevTx.prevBurnHash,
-        from: req.body.from,
-        to: req.body.to,
+        prevBurnHash: prevTx.prevBurnHash?.toLowerCase(),
+        from: req.body.from?.toLowerCase(),
+        to: req.body.to?.toLowerCase(),
         data: req.body.input,
         blockNumber: req.body.blockNumber
       }) // add the new tx to db
@@ -65,8 +65,8 @@ const updateController = async (req, res) => {
         { hash: req.body.hash, network: req.body.network },
         {
           status: req.body.status,
-          from: req.body.from,
-          to: req.body.to,
+          from: req.body.from?.toLowerCase(),
+          to: req.body.to?.toLowerCase(),
           data:
           req.body.input,
           blockNumber: req.body.blockNumber,
@@ -88,7 +88,7 @@ const statusController = async (req, res) => {
       return res.status(400).json({ errors: errors.array() })
     }
     let result = await Transaction.findOne(
-      { hash: req.query.hash, network: req.query.network }, { _id: 0, __v: 0 }
+      { hash: req.query.hash?.toLowerCase(), network: req.query.network }, { _id: 0, __v: 0 }
     ).lean()
     if (!result) {
       result = {}
