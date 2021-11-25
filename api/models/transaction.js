@@ -46,7 +46,8 @@ const txSchema = new mongoose.Schema({
   hash: {
     type: String,
     required: true,
-    index: true
+    index: true,
+    lowercase: true
   },
   status: {
     type: String,
@@ -64,16 +65,40 @@ const txSchema = new mongoose.Schema({
     default: 'other',
     enum: ['burn', 'exit', 'deposit', 'approve', 'confirmWithdraw', 'other']
   },
-  prevBurnHash: String,
-  contractAddress: String,
+  prevBurnHash: {
+    type: String,
+    lowercase: true
+  },
+  contractAddress: {
+    type: String,
+    lowercase: true
+  },
   isPos: Boolean,
-  rootToken: String,
-  from: String,
-  to: String,
-  data: String,
+  rootToken: {
+    type: String,
+    lowercase: true
+  },
+  from: {
+    type: String,
+    lowercase: true
+  },
+  to: {
+    type: String,
+    lowercase: true
+  },
+  data: {
+    type: String,
+    lowercase: true
+  },
   amount: String,
-  oldHash: String,
-  newHash: String,
+  oldHash: {
+    type: String,
+    lowercase: true
+  },
+  newHash: {
+    type: String,
+    lowercase: true
+  },
   blockNumber: Number,
   timestamp: {
     type: Number,
