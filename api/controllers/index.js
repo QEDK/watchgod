@@ -8,15 +8,6 @@ const watchController = async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() })
     }
-    const serviceRes = await axios.post('https://api.blocknative.com/transaction', {
-      apiKey: process.env.API_KEY,
-      hash: req.body.hash,
-      blockchain: 'ethereum',
-      network: req.body.network
-    })
-    if (serviceRes.status !== 200) {
-      throw new Error(serviceRes.data)
-    }
     await Transaction.updateOne({
       hash: req.body.hash?.toLowerCase(),
       network: req.body.network
@@ -24,13 +15,28 @@ const watchController = async (req, res) => {
       hash: req.body.hash?.toLowerCase(),
       network: req.body.network,
       prevBurnHash: req.body.prevBurnHash?.toLowerCase(),
-      txType: req.body.txType,
+      bridgeType: req.body.bridgeType,
       amount: req.body.amount,
       rootToken: req.body.rootToken,
       status: 'watched'
     }, {
       upsert: true
     })
+    const serviceRes = await axios.post('https://api.blocknative.com/transaction', {
+      apiKey: process.env.API_KEY,
+      hash: req.body.hash,
+      blockchain: 'ethereum',
+      network: req.body.network
+    })
+    if (serviceRes.status !== 200) {
+      await Transaction.updateOne({
+        hash: req.body.hash?.toLowerCase(),
+        network: req.body.network
+      }, {
+        status: 'failed'
+      })
+      throw new Error(serviceRes.data)
+    }
     res.sendStatus(200)
   } catch (e) {
     console.error('❎ error:', e)

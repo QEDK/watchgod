@@ -20,8 +20,8 @@ const mongoose = require('mongoose')
 *           type: string
 *         contractAddress:
 *           type: string
-*         isPos:
-*           type: boolean
+*         bridgeType:
+*           type: string
 *         rootToken:
 *           type: string
 *         from:
@@ -73,7 +73,10 @@ const txSchema = new mongoose.Schema({
     type: String,
     lowercase: true
   },
-  isPos: Boolean,
+  bridgeType: {
+    type: String,
+    enum: ['pos', 'plasma', 'fx']
+  },
   rootToken: {
     type: String,
     lowercase: true
