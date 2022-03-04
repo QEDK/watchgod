@@ -16,6 +16,7 @@ const watchController = async (req, res) => {
       network: req.body.network,
       prevBurnHash: req.body.prevBurnHash?.toLowerCase(),
       bridgeType: req.body.bridgeType,
+      txType: req.body.txType,
       amount: req.body.amount,
       rootToken: req.body.rootToken,
       status: 'watched'
