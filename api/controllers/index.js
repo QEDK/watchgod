@@ -14,6 +14,7 @@ const watchController = async (req, res) => {
     }, {
       hash: req.body.hash?.toLowerCase(),
       network: req.body.network,
+      metadata: req.body.metadata,
       prevBurnHash: req.body.prevBurnHash?.toLowerCase(),
       bridgeType: req.body.bridgeType,
       txType: req.body.txType,
@@ -58,6 +59,9 @@ const updateController = async (req, res) => {
         network: req.body.network,
         status: req.body.status,
         prevBurnHash: prevTx.prevBurnHash?.toLowerCase(),
+        metadata: prevTx.metadata,
+        rootToken: prevTx.rootToken,
+        txType: prevTx.txType,
         from: req.body.from?.toLowerCase(),
         to: req.body.to?.toLowerCase(),
         data: req.body.input,
@@ -74,8 +78,7 @@ const updateController = async (req, res) => {
           status: req.body.status,
           from: req.body.from?.toLowerCase(),
           to: req.body.to?.toLowerCase(),
-          data:
-          req.body.input,
+          data: req.body.input,
           blockNumber: req.body.blockNumber,
           timestamp: Date.now()
         }

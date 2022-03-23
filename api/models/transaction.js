@@ -18,6 +18,8 @@ const mongoose = require('mongoose')
 *           type: string
 *         prevBurnHash:
 *           type: string
+*         metadata:
+*           type: object
 *         contractAddress:
 *           type: string
 *         bridgeType:
@@ -68,6 +70,9 @@ const txSchema = new mongoose.Schema({
   prevBurnHash: {
     type: String,
     lowercase: true
+  },
+  metadata: {
+    type: mongoose.SchemaTypes.Mixed
   },
   contractAddress: {
     type: String,
